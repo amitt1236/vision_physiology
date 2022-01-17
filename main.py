@@ -69,9 +69,6 @@ with mp_face_mesh.FaceMesh(
         if results.multi_face_landmarks:
             frame_count = frame_count + 1
 
-            # head pose estimation
-            head_pose.pose(image, results.multi_face_landmarks[0])
-
             # eyes detection
             pup = pupil.Pupil(frame=image, points=results.multi_face_landmarks[0])
             pup_left = pup.left_eye()    # frame that contains the left eye
@@ -87,6 +84,9 @@ with mp_face_mesh.FaceMesh(
             # returns the skin portion of the face, without eyes, mouth, etc.
             clean = face.clean_face(image, results.multi_face_landmarks[0])
 
+            # head pose estimation
+            head_pose.pose(image, results.multi_face_landmarks[0])
+            
             '''
             speaker detection:
             determining if the recognized person is speaking.
