@@ -86,7 +86,7 @@ with mp_face_mesh.FaceMesh(
 
             # head pose estimation
             head_pose.pose(image, results.multi_face_landmarks[0])
-            
+
             '''
             speaker detection:
             determining if the recognized person is speaking.
