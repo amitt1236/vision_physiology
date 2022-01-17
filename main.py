@@ -129,8 +129,9 @@ with mp_face_mesh.FaceMesh(
                     if BPM_obj is None:
                         BPM_obj = BPM(bvp, fps, minHz=0.7, maxHz=3.0)
                     else:
-                        BPM_obj.data = bvp
+                        BPM_obj.bvp_sig = bvp
                     bpm = BPM_obj.BVP_to_BPM()
+                    print(bpm)
                 else:
                     sig_buff_counter = sig_buff_counter - 1
 

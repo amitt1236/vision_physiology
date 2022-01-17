@@ -151,7 +151,7 @@ class VideoThread(QThread):
                             if self.BPM_obj is None:
                                 self.BPM_obj = BPM(bvp, self.fps, minHz=0.7, maxHz=3.0)
                             else:
-                                self.BPM_obj.data = bvp
+                                self.BPM_obj.bvp_sig = bvp
                             bpm = self.BPM_obj.BVP_to_BPM()
                             # mean calculation
                             if len(self.bpm_buffer) >= self.bpm_mean_window:
