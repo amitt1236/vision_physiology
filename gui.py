@@ -11,7 +11,7 @@ import pupil
 from pulse import *
 import record
 import speaker
-import head_pose
+import gaze
 
 cam = 1
 
@@ -107,7 +107,7 @@ class VideoThread(QThread):
                     self.clean_face_signal.emit(clean)
 
                     # head pose estimation    
-                    head_pose.pose(image, results.multi_face_landmarks[0])
+                    gaze.gaze(image, results.multi_face_landmarks[0])
                     self.raw_frame_signal.emit(image)  # pass main frame with head pose estimation to gui
 
                     '''

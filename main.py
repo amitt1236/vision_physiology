@@ -6,8 +6,8 @@ from pulse import BPfilter, cpu_POS, rgb_mean
 import pupil
 import face
 from pulse import *
-import head_pose
 import speaker
+import gaze
 
 mp_face_mesh = mp.solutions.face_mesh # initialize the face mesh model
 
@@ -85,7 +85,7 @@ with mp_face_mesh.FaceMesh(
             clean = face.clean_face(image, results.multi_face_landmarks[0])
 
             # head pose estimation
-            head_pose.pose(image, results.multi_face_landmarks[0])
+            gaze.gaze(image, results.multi_face_landmarks[0])
 
             '''
             speaker detection:
