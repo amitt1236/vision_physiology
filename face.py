@@ -5,7 +5,7 @@ import cv2
 Creating a frame that containing only the skin portion of the head 
 This frame is passed to the POS algorithm to calculate the heartrate from the image data
 '''
-# points for poligons for eyes socket, eyebrews, and face 
+# points for polygons for eyes socket, eyebrows, and face
 eye_num_l = [257, 259, 260, 467, 359, 255, 339, 254, 253, 252, 256, 341, 463, 414, 286, 258]
 eye_num_r = [130, 247, 30, 29, 27, 28, 56, 190, 243, 112, 26, 22, 23, 24, 110, 25]
 eyebrow_l = [124, 46, 53, 52, 65, 55, 107, 66, 105, 63, 70, 156]

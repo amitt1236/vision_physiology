@@ -3,7 +3,7 @@ import subprocess
 from datetime import datetime
 
 """
-Recoreds cemera and microphone input using ffmpeg, creating a new subprocess for the task
+Records camera and microphone input using ffmpeg, creating a new subprocess for the task
 
 ##To get device list##
 ffmpeg -f avfoundation -list_devices true -i ""

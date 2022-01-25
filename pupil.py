@@ -14,7 +14,6 @@ class Pupil:
     def __init__(self, frame, points):
         self.points = points
         self.frame = frame
-        self.shape = frame.shape
 
     '''
     input: face landmarks and raw frame. 

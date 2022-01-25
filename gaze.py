@@ -5,6 +5,7 @@ import numpy as np
 https://github.com/amitt1236/Gaze_estimation
 '''
 
+
 def gaze(frame, points):
     """
     The gaze function gets an image and face landmarks from mediapipe framework.
@@ -19,18 +20,17 @@ def gaze(frame, points):
     image_points = np.array([
         points[4],  # Nose tip
         points[152],  # Chin
-        points[263],  # Left eye left corner
-        points[33],  # Right eye right corner
+        points[263],  # Left eye, left corner
+        points[33],  # Right eye, right corner
         points[287],  # Left Mouth corner
         points[57]  # Right mouth corner
     ], dtype="double")
 
     '''
     2D image points.
-    relativeT takes mediapipe points that is normalized to [-1, 1] and returns image points
-    at (x,y,0) format
+    transform image points to (x,y,0) format
     '''
-    image_points1 = np.concatenate((image_points, np.zeros((6,1))), axis = 1)
+    image_points1 = np.concatenate((image_points, np.zeros((6, 1))), axis=1)
 
     # 3D model points.
     model_points = np.array([
