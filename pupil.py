@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from helpers import distance, rad, relative
+from helpers import distance, rad
 
 '''
 This class implements eyes crop from raw frame, and other methods to get data about the condition
@@ -23,16 +23,16 @@ class Pupil:
 
     def left_eye(self):
         # Left eye
-        l_p = self.points.landmark[473]  # pupil
-        l1 = self.points.landmark[474]
-        l2 = self.points.landmark[475]
-        l3 = self.points.landmark[476]
-        l4 = self.points.landmark[477]
+        l_p = self.points[473]  # pupil
+        l1 = self.points[474]
+        l2 = self.points[475]
+        l3 = self.points[476]
+        l4 = self.points[477]
 
-        left_radius = rad(l_p, l1, l2, l3, l4, self.shape)  # raduis of the retina
-        left_point = relative(l_p, self.shape)  # pupil location
-        pup_left = self.frame[int(left_point[1] - left_radius): int(left_point[1] + left_radius),
-                   int(left_point[0] - left_radius): int(left_point[0] + left_radius)]
+        left_radius = rad(l_p, l1, l2, l3, l4)  # raduis of the retina
+
+        pup_left = self.frame[int(l_p[1] - left_radius): int(l_p[1] + left_radius),
+                   int(l_p[0] - left_radius): int(l_p[0] + left_radius)]
 
         return CLAHE(pup_left)
 
@@ -43,16 +43,16 @@ class Pupil:
 
     def right_eye(self):
         # Right eye
-        r_p = self.points.landmark[468]  # Pupil
-        r1 = self.points.landmark[469]
-        r2 = self.points.landmark[470]
-        r3 = self.points.landmark[471]
-        r4 = self.points.landmark[472]
+        r_p = self.points[468]  # Pupil
+        r1 = self.points[469]
+        r2 = self.points[470]
+        r3 = self.points[471]
+        r4 = self.points[472]
 
-        right_radius = rad(r_p, r1, r2, r3, r4, self.shape)  # raduis of the retina
-        right_point = relative(r_p, self.shape)  # pupil location
-        pup_right = self.frame[int(right_point[1] - right_radius): int(right_point[1] + right_radius),
-                    int(right_point[0] - right_radius): int(right_point[0] + right_radius)]
+        right_radius = rad(r_p, r1, r2, r3, r4)  # raduis of the retina
+
+        pup_right = self.frame[int(r_p[1] - right_radius): int(r_p[1] + right_radius),
+                    int(r_p[0] - right_radius): int(r_p[0] + right_radius)]
 
         return CLAHE(pup_right)
 
@@ -64,21 +64,19 @@ class Pupil:
     '''
 
     def eyes_close(self):
-        upper_left = self.points.landmark[386]
-        lower_left = self.points.landmark[374]
-        vertical_left1 = self.points.landmark[362]
-        vertical_left2 = self.points.landmark[263]
+        upper_left = self.points[386]
+        lower_left = self.points[374]
+        vertical_left1 = self.points[362]
+        vertical_left2 = self.points[263]
 
-        upper_right = self.points.landmark[159]
-        lower_right = self.points.landmark[145]
-        vertical_right1 = self.points.landmark[33]
-        vertical_right2 = self.points.landmark[133]
+        upper_right = self.points[159]
+        lower_right = self.points[145]
+        vertical_right1 = self.points[33]
+        vertical_right2 = self.points[133]
 
         # Ratio average, every eye distance was multiplied by 100 for easier represntation 
-        return (distance(upper_left, lower_left, self.shape) / distance(vertical_left1, vertical_left2,
-                                                                        self.shape) * 100 \
-                + distance(upper_right, lower_right, self.shape) / distance(vertical_right1, vertical_right2,
-                                                                            self.shape) * 100) / 2
+        return (distance(upper_left, lower_left) / distance(vertical_left1, vertical_left2) * 100 \
+                + distance(upper_right, lower_right) / distance(vertical_right1, vertical_right2,) * 100) / 2
 
     '''
     input: face landmarks and raw frame 
@@ -88,30 +86,30 @@ class Pupil:
     '''
 
     def location(self):
-        vert_right1 = self.points.landmark[33]
-        vert_right2 = self.points.landmark[133]
-        vert_left1 = self.points.landmark[362]
-        vert_left2 = self.points.landmark[263]
-        vert_left = distance(vert_left1, vert_left2, self.shape)  # vertical length of the left eye socket
-        vert_right = distance(vert_right1, vert_right2, self.shape)  # vertical length of the right eye socket
+        vert_right1 = self.points[33]
+        vert_right2 = self.points[133]
+        vert_left1 = self.points[362]
+        vert_left2 = self.points[263]
+        vert_left = distance(vert_left1, vert_left2)  # vertical length of the left eye socket
+        vert_right = distance(vert_right1, vert_right2)  # vertical length of the right eye socket
 
-        horz_right1 = self.points.landmark[23]
-        horz_right2 = self.points.landmark[27]
-        horz_left1 = self.points.landmark[253]
-        horz_left2 = self.points.landmark[257]
-        horz_left = distance(horz_left1, horz_left2, self.shape)  # horizontal length of the left eye socket
-        horz_right = distance(horz_right1, horz_right2, self.shape)  # horizontal length of the right eye socket
+        horz_right1 = self.points[23]
+        horz_right2 = self.points[27]
+        horz_left1 = self.points[253]
+        horz_left2 = self.points[257]
+        horz_left = distance(horz_left1, horz_left2)  # horizontal length of the left eye socket
+        horz_right = distance(horz_right1, horz_right2)  # horizontal length of the right eye socket
 
         # center of the right eye socket
-        center_right = ((relative(vert_right1, self.shape)[0] + relative(vert_right2, self.shape)[0]) // 2,
-                        (relative(vert_right1, self.shape)[1] + relative(vert_right2, self.shape)[1]) // 2)
+        center_right = ((vert_right1[0] + vert_right2[0]) // 2,
+                        (vert_right1[1] + vert_right2[1]) // 2)
 
         # center of the left eye socket
-        center_left = ((relative(vert_left1, self.shape)[0] + relative(vert_left2, self.shape)[0]) // 2,
-                       (relative(vert_left1, self.shape)[1] + relative(vert_left2, self.shape)[1]) // 2)
+        center_left = ((vert_left1[0] + vert_left2[0]) // 2,
+                       (vert_left1[1] + vert_left2[1]) // 2)
 
-        pup_right = relative(self.points.landmark[468], self.shape)  # left pupil location
-        pup_left = relative(self.points.landmark[473], self.shape)  # right pupil location
+        pup_right = self.points[468]  # left pupil location
+        pup_left =  self.points[473]  # right pupil location
 
         # position in the eye socket, normelized by the vertical and horizontal length divided by 3
         # divition by three is needed because the pupil cant reach to the edge of the eye socket

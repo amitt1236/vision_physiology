@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-from helpers import relative, relativeT
 
 '''
 https://github.com/amitt1236/Gaze_estimation
@@ -18,12 +17,12 @@ def gaze(frame, points):
     at (x,y) format
     '''
     image_points = np.array([
-        relative(points.landmark[4], frame.shape),  # Nose tip
-        relative(points.landmark[152], frame.shape),  # Chin
-        relative(points.landmark[263], frame.shape),  # Left eye left corner
-        relative(points.landmark[33], frame.shape),  # Right eye right corner
-        relative(points.landmark[287], frame.shape),  # Left Mouth corner
-        relative(points.landmark[57], frame.shape)  # Right mouth corner
+        points[4],  # Nose tip
+        points[152],  # Chin
+        points[263],  # Left eye left corner
+        points[33],  # Right eye right corner
+        points[287],  # Left Mouth corner
+        points[57]  # Right mouth corner
     ], dtype="double")
 
     '''
@@ -31,14 +30,7 @@ def gaze(frame, points):
     relativeT takes mediapipe points that is normalized to [-1, 1] and returns image points
     at (x,y,0) format
     '''
-    image_points1 = np.array([
-        relativeT(points.landmark[4], frame.shape),  # Nose tip
-        relativeT(points.landmark[152], frame.shape),  # Chin
-        relativeT(points.landmark[263], frame.shape),  # Left eye, left corner
-        relativeT(points.landmark[33], frame.shape),  # Right eye, right corner
-        relativeT(points.landmark[287], frame.shape),  # Left Mouth corner
-        relativeT(points.landmark[57], frame.shape)  # Right mouth corner
-    ], dtype="double")
+    image_points1 = np.concatenate((image_points, np.zeros((6,1))), axis = 1)
 
     # 3D model points.
     model_points = np.array([
@@ -73,8 +65,8 @@ def gaze(frame, points):
                                                                   dist_coeffs, flags=cv2.cv2.SOLVEPNP_ITERATIVE)
 
     # 2d pupil location
-    left_pupil = relative(points.landmark[468], frame.shape)
-    right_pupil = relative(points.landmark[473], frame.shape)
+    left_pupil = points[468]
+    right_pupil = points[473]
 
     # Transformation between image point to world point
     _, transformation, _ = cv2.estimateAffine3D(image_points1, model_points)  # image to world transformation

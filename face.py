@@ -1,6 +1,5 @@
 import numpy as np
 import cv2
-from helpers import relative
 
 '''
 Creating a frame that containing only the skin portion of the head 
@@ -18,11 +17,11 @@ face = [97, 206, 207, 192, 215, 177, 137, 227, 34, 139, 21, 54, 103, 67, 109, 10
 
 # function to create a clean frame that containing only the skin portion of the head
 def clean_face(frame, points):
-    eye_cnt_l = np.array([[relative(points.landmark[i], frame.shape)] for i in eye_num_l], dtype=np.int32)
-    eye_cnt_r = np.array([[relative(points.landmark[i], frame.shape)] for i in eye_num_r], dtype=np.int32)
-    eyebrow_cnt_l = np.array([[relative(points.landmark[i], frame.shape)] for i in eyebrow_l], dtype=np.int32)
-    eyebrow_cnt_r = np.array([[relative(points.landmark[i], frame.shape)] for i in eyebrow_r], dtype=np.int32)
-    face_cnt = np.array([[relative(points.landmark[i], frame.shape)] for i in face], dtype=np.int32)
+    eye_cnt_l = np.array([[points[i]] for i in eye_num_l], dtype=np.int32)
+    eye_cnt_r = np.array([[points[i]] for i in eye_num_r], dtype=np.int32)
+    eyebrow_cnt_l = np.array([[points[i]] for i in eyebrow_l], dtype=np.int32)
+    eyebrow_cnt_r = np.array([[points[i]] for i in eyebrow_r], dtype=np.int32)
+    face_cnt = np.array([[points[i]] for i in face], dtype=np.int32)
 
     zeros = np.zeros(frame.shape).astype(frame.dtype)
     out = frame.copy()

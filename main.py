@@ -46,6 +46,11 @@ win_len = 60                          # length of the window to calculate the va
 sum_distance = np.zeros((win_len,1))  # holds the distance between the lips for each frame
 speaker_min = math.inf                # minimum distance between the lips
 
+'''
+points
+'''
+points_arr = np.zeros((478,2))
+
 # camera stream:
 cap = cv2.VideoCapture(1)
 # fps = cap.get(cv2.CAP_PROP_FPS)
@@ -65,12 +70,18 @@ with mp_face_mesh.FaceMesh(
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) # frame to RGB for the face-mesh model
         results = face_mesh.process(image)
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        shape = np.array([[image.shape[1], 0],[0, image.shape[0]]])
 
         if results.multi_face_landmarks:
             frame_count = frame_count + 1
 
+            for i in range(478):
+                points_arr[i][0] = results.multi_face_landmarks[0].landmark[i].x
+                points_arr[i][1] = results.multi_face_landmarks[0].landmark[i].y
+            points_relative = points_arr @ shape
+
             # eyes detection
-            pup = pupil.Pupil(frame=image, points=results.multi_face_landmarks[0])
+            pup = pupil.Pupil(image, points_relative)
             pup_left = pup.left_eye()    # frame that contains the left eye
             pup_right = pup.right_eye()  # frame that contains the right eye
 
@@ -82,17 +93,17 @@ with mp_face_mesh.FaceMesh(
                 blink_counter = blink_counter + 1
 
             # returns the skin portion of the face, without eyes, mouth, etc.
-            clean = face.clean_face(image, results.multi_face_landmarks[0])
+            clean = face.clean_face(image, points_relative)
 
             # head pose estimation
-            gaze.gaze(image, results.multi_face_landmarks[0])
+            gaze.gaze(image, points_relative)
 
             '''
             speaker detection:
             determining if the recognized person is speaking.
             calculating the variance of the distance between the lips over predefined window of frames
             '''
-            sum_distance[frame_count % win_len] = speaker.speaks(image, results.multi_face_landmarks[0])
+            sum_distance[frame_count % win_len] = speaker.speaks(points_relative)
             var_cur = np.var(sum_distance,0)
             speaker_min = min(speaker_min, var_cur)
             if var_cur >= SPEAKER_SENSITIVITY * speaker_min:

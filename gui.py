@@ -15,7 +15,6 @@ import gaze
 
 cam = 1
 
-
 # OpenCv thread
 # noinspection PyUnresolvedReferences
 class VideoThread(QThread):
@@ -57,10 +56,16 @@ class VideoThread(QThread):
     '''
     speaker
     '''
-    SPEAKER_SENSITIVITY = 30                # higher values equals to less sensitive
-    win_len = 60                            # length of the window to calculate the variance
+    SPEAKER_SENSITIVITY = 60                # higher values equals to less sensitive
+    win_len = 30                            # length of the window to calculate the variance
     sum_distance = np.zeros((win_len, 1))   # holds the distance between the lips for each frame
     speaker_min = math.inf                  # minimum distance between the lips
+
+    '''
+    points
+    '''
+    points_arr = np.zeros((478,2))
+
 
     def run(self):
         mp_face_mesh = mp.solutions.face_mesh  # initialize the face mesh model
@@ -83,12 +88,18 @@ class VideoThread(QThread):
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # frame to RGB for the face-mesh model
                 results = face_mesh.process(image)
                 image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+                shape = np.array([[image.shape[1], 0],[0, image.shape[0]]])
 
                 if results.multi_face_landmarks:
                     self.frame_count = self.frame_count + 1
 
+                    for i in range(478):
+                        self.points_arr[i][0] = results.multi_face_landmarks[0].landmark[i].x
+                        self.points_arr[i][1] = results.multi_face_landmarks[0].landmark[i].y
+                        points_relative = self.points_arr @ shape
+
                     # eyes detection
-                    pup = pupil.Pupil(frame=image, points=results.multi_face_landmarks[0])
+                    pup = pupil.Pupil(image, points_relative)
                     pup_left = pup.left_eye()
                     pup_right = pup.right_eye()
                     self.left_pupil_signal.emit(pup_left)  # pass left eye frame to gui
@@ -103,11 +114,11 @@ class VideoThread(QThread):
                     self.count_blink_signal.emit(self.blink_counter)  # pass blink counter
 
                     # returns the skin portion of the face, without eyes, mouth, etc.
-                    clean = face.clean_face(image, results.multi_face_landmarks[0])
+                    clean = face.clean_face(image, points_relative)
                     self.clean_face_signal.emit(clean)
 
-                    # head pose estimation    
-                    gaze.gaze(image, results.multi_face_landmarks[0])
+                    # gaze pose estimation    
+                    gaze.gaze(image, points_relative)
                     self.raw_frame_signal.emit(image)  # pass main frame with head pose estimation to gui
 
                     '''
@@ -115,9 +126,10 @@ class VideoThread(QThread):
                     determining if the recognized person is speaking.
                     calculating the variance of the distance between the lips over predefined window of frames
                     '''
-                    self.sum_distance[self.frame_count % self.win_len] = speaker.speaks(image, results.multi_face_landmarks[0])
+                    self.sum_distance[self.frame_count % self.win_len] = speaker.speaks(points_relative)
                     var_cur = np.var(self.sum_distance, 0)
                     self.speaker_min = min(self.speaker_min, var_cur)
+                    
                     if var_cur >= self.SPEAKER_SENSITIVITY * self.speaker_min:
                         self.isSpeaking_signal.emit(True)
                     else:
