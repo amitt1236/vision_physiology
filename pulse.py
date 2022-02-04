@@ -3,34 +3,32 @@ from numba import njit, prange
 import numpy as np
 
 
-"""
-This class transforms a BVP signal in a BPM signal using CPU.
-BVP signal must be a float32 numpy.ndarray with shape [num_estimators, num_frames].
-
-Input 'bvp_sig' is a BVP signal defined as a float32 Numpy.ndarray with shape [num_estimators, num_frames]
-"""
-
-
 # noinspection SpellCheckingInspection
 class BPM:
+    """
+    This class transforms a BVP signal in a BPM signal using CPU.
+    BVP signal must be a float32 numpy.ndarray with shape [num_estimators, num_frames].
+
+    Input 'bvp_sig' is a BVP signal defined as a float32 Numpy.ndarray with shape [num_estimators, num_frames]
+    """
+
     def __init__(self, bvp_sig, fps, minHz=0.65, maxHz=4.):
 
-        self.nFFT = 2048 // 1                      # freq. resolution for STFTs
+        self.nFFT = 2048 // 1  # freq. resolution for STFTs
         if len(bvp_sig.shape) == 1:
             self.bvp_sig = bvp_sig.reshape(1, -1)  # 2D array raw-wise
         else:
             self.bvp_sig = bvp_sig
-        self.fps = fps                             # sample rate
+        self.fps = fps  # sample rate
         self.minHz = minHz
         self.maxHz = maxHz
 
-    """
-    Return the BPM signal as a float32 Numpy.ndarray with shape [num_estimators, ].
-    This method use the Welch's method to estimate the spectral density of the BVP signal,
-    then it chooses as BPM the maximum Amplitude frequency.
-    """
-
     def BVP_to_BPM(self):
+        """
+        Return the BPM signal as a float32 Numpy.ndarray with shape [num_estimators, ].
+        This method use the Welch's method to estimate the spectral density of the BVP signal,
+        then it chooses as BPM the maximum Amplitude frequency.
+        """
         if self.bvp_sig.shape[0] == 0:
             return np.float32(0.0)
         Pfreqs, Power = Welch(self.bvp_sig, self.fps, self.minHz, self.maxHz, self.nFFT)
@@ -39,23 +37,23 @@ class BPM:
         return Pfreqs[Pmax.squeeze()]
 
 
-"""
-RGB mean
-This method computes the RGB-Mean Signal excluding 'im' pixels
-that are outside the RGB range [RGB_LOW_TH, RGB_HIGH_TH] (extremes are included).
-the function is jited using numba for performance reasons
-Args: 
-    im (uint8 ndarray): ndarray with shape [rows, columns, rgb_channels]. contains only the skin portion of the face.
-    RGB_LOW_TH (numpy.int32): RGB low threshold value.
-    RGB_HIGH_TH (numpy.int32): RGB high threshold value.
-Returns:
-    RGB-Mean Signal as float32 ndarray with shape [1,3], where 1 is the single estimator,
-    and 3 are r-mean, g-mean and b-mean.
-"""
 
 
 @njit(['float32[:,:](uint8[:,:,:], int32, int32)', ], parallel=True, fastmath=True, nogil=True)
 def rgb_mean(im, RGB_LOW_TH, RGB_HIGH_TH):
+    """
+    RGB mean
+    This method computes the RGB-Mean Signal excluding 'im' pixels
+    that are outside the RGB range [RGB_LOW_TH, RGB_HIGH_TH] (extremes are included).
+    the function is jited using numba for performance reasons
+    Args:
+        im (uint8 ndarray): ndarray with shape [rows, columns, rgb_channels]. contains only the skin portion of the face.
+        RGB_LOW_TH (numpy.int32): RGB low threshold value.
+        RGB_HIGH_TH (numpy.int32): RGB high threshold value.
+    Returns:
+        RGB-Mean Signal as float32 ndarray with shape [1,3], where 1 is the single estimator,
+        and 3 are r-mean, g-mean and b-mean.
+    """
     mean = np.zeros((1, 3), dtype=np.float32)
     mean_r = np.float32(0.0)
     mean_g = np.float32(0.0)
@@ -80,13 +78,11 @@ def rgb_mean(im, RGB_LOW_TH, RGB_HIGH_TH):
     return mean
 
 
-"""
-pre filter
-Band Pass filter for RGB signal and BVP signal.
-"""
-
-
 def BPfilter(sig, fps, minHz=0.7, maxHz=3.0, order=6):
+    """
+    pre-filter
+    Band Pass filter for RGB signal and BVP signal.
+    """
     x = np.array(np.swapaxes(sig, 1, 2))
     b, a = butter(order, Wn=[minHz, maxHz], fs=fps, btype='bandpass')
     y = filtfilt(b, a, x, axis=1)
@@ -94,15 +90,13 @@ def BPfilter(sig, fps, minHz=0.7, maxHz=3.0, order=6):
     return y
 
 
-"""
-POS method on CPU using Numpy.
-Wang, W., den Brinker, A. C., Stuijk, S., & de Haan, G. (2016). Algorithmic principles of remote PPG. IEEE Transactions 
-on Biomedical Engineering, 64(7), 1479-1491. 
-https://pure.tue.nl/ws/portalfiles/portal/31563684/TBME_00467_2016_R1_preprint.pdf
-"""
-
-
 def cpu_POS(signal, fps):
+    """
+    POS method on CPU using Numpy.
+    Wang, W., den Brinker, A. C., Stuijk, S., & de Haan, G. (2016). Algorithmic principles of remote PPG. IEEE Transactions
+    on Biomedical Engineering, 64(7), 1479-1491.
+    https://pure.tue.nl/ws/portalfiles/portal/31563684/TBME_00467_2016_R1_preprint.pdf
+    """
     # Run the pos algorithm on the RGB color signal c with sliding window length wlen
     # Recommended value for wlen is 32 for a 20 fps camera (1.6 s)
     eps = 10 ** -9
@@ -143,21 +137,19 @@ def cpu_POS(signal, fps):
     return H
 
 
-"""
-This function computes Welch'method for spectral density estimation.
-Args:
-    bvps(flaot32 numpy.ndarray): BVP signal as float32 Numpy.ndarray with shape [num_estimators, num_frames].
-    fps (float): frames per seconds.
-    minHz (float): frequency in Hz used to isolate a specific subband [minHz, maxHz] (esclusive).
-    maxHz (float): frequency in Hz used to isolate a specific subband [minHz, maxHz] (esclusive).
-    nfft (int): number of DFT points, specified as a positive integer.
-Returns:
-    Sample frequencies as float32 numpy.ndarray, and Power spectral density or power spectrum as float32 numpy.ndarray.
-"""
-
-
 # noinspection SpellCheckingInspection
 def Welch(bvps, fps, minHz=0.65, maxHz=4.0, nfft=2048):
+    """
+    This function computes Welch'method for spectral density estimation.
+    Args:
+        bvps(flaot32 numpy.ndarray): BVP signal as float32 Numpy.ndarray with shape [num_estimators, num_frames].
+        fps (float): frames per seconds.
+        minHz (float): frequency in Hz used to isolate a specific subband [minHz, maxHz] (esclusive).
+        maxHz (float): frequency in Hz used to isolate a specific subband [minHz, maxHz] (esclusive).
+        nfft (int): number of DFT points, specified as a positive integer.
+    Returns:
+        Sample frequencies as float32 numpy.ndarray, and Power spectral density or power spectrum as float32 numpy.ndarray.
+    """
     _, n = bvps.shape
     if n < 256:
         seglength = n

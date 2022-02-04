@@ -1,13 +1,12 @@
 from helpers import distance
 
-'''
-input: the current frame and face landmarks
-output: The distance between the lips normalized by the horizontal length of the nose
-thus the distance of the subject from the camera doesnt interferes with the result
-'''
-
 
 def speaks(points):
+    """
+    input: the current frame and face landmarks
+    output: The distance between the lips normalized by the horizontal length of the nose
+    thus the distance of the subject from the camera doesnt interferes with the result
+    """
     t1 = points[37]
     b1 = points[84]
     t2 = points[0]

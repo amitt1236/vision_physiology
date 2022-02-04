@@ -1,15 +1,18 @@
 import cv2
 import numpy as np
 
-'''
-https://github.com/amitt1236/Gaze_estimation
-'''
-
 
 def gaze(frame, points):
     """
     The gaze function gets an image and face landmarks from mediapipe framework.
     The function draws the gaze direction into the frame.
+
+    https://github.com/amitt1236/Gaze_estimation
+    Args:
+        frame: an image in numpy array format
+        points: face landmarks in a 2d array
+    Return:
+        NONE
     """
 
     '''
@@ -108,5 +111,5 @@ def gaze(frame, points):
         cv2.line(frame, L1, L2, (0, 0, 255), 2)
         cv2.line(frame, R1, R2, (0, 0, 255), 2)
         
-        gaze_point =  ((int((gaze_left[0] + gaze_right[0]) / 2), int((gaze_left[1] + gaze_right[1]) / 2)))
+        gaze_point =  (int((gaze_left[0] + gaze_right[0]) / 2), int((gaze_left[1] + gaze_right[1]) / 2))
         cv2.circle(frame, gaze_point, 3 , (255, 0, 0), 3)
