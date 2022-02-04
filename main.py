@@ -9,7 +9,7 @@ from pulse import *
 import speaker
 import gaze
 
-mp_face_mesh = mp.solutions.face_mesh # initialize the face mesh model
+mp_face_mesh = mp.solutions.face_mesh  # initialize the face mesh model
 
 '''
 Stream
@@ -52,7 +52,7 @@ points
 points_arr = np.zeros((478,2))
 
 # camera stream:
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 # fps = cap.get(cv2.CAP_PROP_FPS)
 with mp_face_mesh.FaceMesh(
         max_num_faces=1,                            # number of faces to track in each frame
@@ -157,4 +157,5 @@ with mp_face_mesh.FaceMesh(
         cv2.imshow('MediaPipe Face Mesh', image)
         if cv2.waitKey(2) & 0xFF == 27:
             break
+            
 cap.release()

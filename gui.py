@@ -13,7 +13,7 @@ import record
 import speaker
 import gaze
 
-cam = 1
+cam = 0
 
 # OpenCv thread
 # noinspection PyUnresolvedReferences
@@ -70,7 +70,7 @@ class VideoThread(QThread):
     def run(self):
         mp_face_mesh = mp.solutions.face_mesh  # initialize the face mesh model
         # camera stream:
-        cap = cv2.VideoCapture(1)
+        cap = cv2.VideoCapture(cam)
         # fps = cap.get(cv2.CAP_PROP_FPS) 
         with mp_face_mesh.FaceMesh(
                 max_num_faces=1,  # number of faces to track in each frame
