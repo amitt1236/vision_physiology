@@ -2,15 +2,17 @@ import cv2
 import math
 import numpy as np
 import mediapipe as mp
+import scipy
 from pulse import BPfilter, cpu_POS, rgb_mean
 import pupil
 import face
 from pulse import *
 import speaker
 import gaze
+import matplotlib.pyplot as plt
+from scipy.fft import fft, ifft
 
 mp_face_mesh = mp.solutions.face_mesh  # initialize the face mesh model
-
 '''
 Stream
 '''
@@ -51,6 +53,17 @@ points
 '''
 points_arr = np.zeros((478,2))
 
+'''
+plot
+'''
+ploted = False
+# to run GUI event loop
+plt.ion()
+# here we are creating sub plots
+figure, ax = plt.subplots(figsize=(10, 8))
+figure2, ax2 = plt.subplots(figsize=(10, 8))
+
+ 
 # camera stream:
 cap = cv2.VideoCapture(0)
 # fps = cap.get(cv2.CAP_PROP_FPS)
@@ -115,7 +128,7 @@ with mp_face_mesh.FaceMesh(
             pulse detection:
             determining the recognized person pulse from image data using POS algorithm
             '''
-            tmp = rgb_mean(clean, RGB_HIGH_TH, RGB_HIGH_TH)
+            tmp = rgb_mean(clean, RGB_LOW_TH, RGB_HIGH_TH)
             signal.append(tmp)
             if frame_count > int(fps * WIN_SIZE):  # initial window size
                 signal = signal[1:]
@@ -131,11 +144,30 @@ with mp_face_mesh.FaceMesh(
                     # BVP#
                     bvp = cpu_POS(copy_sig, fps)
 
+                    # ploting BVP
+                    x = [i for i in range(len(bvp[0]))]
+                    if not ploted:
+                        line1, = ax.plot([0, 175], [40000, -40000])
+                        line2, = ax2.plot([0, 220], [5000000, -10])
+                        ploted = True
+                    
+                    line1.set_xdata(x)
+                    line1.set_ydata(bvp[0])
+                    figure.canvas.draw()
+                    figure.canvas.flush_events()
+
                     # Post filter#
                     bvp = np.expand_dims(bvp, axis=1)
                     bvp = BPfilter(bvp, fps)
                     bvp = np.squeeze(bvp, axis=1)
 
+                    freq, power  = Welch(bvp, fps)
+
+                    line2.set_xdata(freq)
+                    line2.set_ydata(power)
+                    figure2.canvas.draw()
+                    figure2.canvas.flush_events()
+                    
                     # BPM#
                     if BPM_obj is None:
                         BPM_obj = BPM(bvp, fps, minHz=0.7, maxHz=3.0)
