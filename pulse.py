@@ -38,7 +38,6 @@ class BPM:
 
 
 
-
 @njit(['float32[:,:](uint8[:,:,:], int32, int32)', ], parallel=True, fastmath=True, nogil=True)
 def rgb_mean(im, RGB_LOW_TH, RGB_HIGH_TH):
     """
