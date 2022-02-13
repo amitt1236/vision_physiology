@@ -39,7 +39,7 @@ class VideoThread(QThread):
     '''
     blink_flag = True        # blinking flag, true if eyes are closed
     blink_counter = 0        # counts the number of blinks from the beginning of the stream
-    BLINK_THRESHOLD = 5000   # threshold to consider a blink
+    BLINK_THRESHOLD = 10     # threshold to consider a blink
     '''
     pulse
     '''
@@ -56,7 +56,7 @@ class VideoThread(QThread):
     '''
     speaker
     '''
-    SPEAKER_SENSITIVITY = 60                # higher values equals to less sensitive
+    SPEAKER_SENSITIVITY = 100                # higher values equals to less sensitive
     win_len = 30                            # length of the window to calculate the variance
     sum_distance = np.zeros((win_len, 1))   # holds the distance between the lips for each frame
     speaker_min = math.inf                  # minimum distance between the lips
